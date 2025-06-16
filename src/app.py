@@ -1,121 +1,294 @@
+# VERSAO 2 
+# import streamlit as st
+# import os
+# from crew import FiscalCrew
+
+# st.set_page_config(
+#     page_title="Agente Fiscal - Análise de Notas Fiscais",
+#     page_icon="📊",
+#     layout="wide"
+# )
+
+# def main():
+#     st.title("🧾 Agente Fiscal - Análise de Notas Fiscais")
+#     st.markdown("---")
+    
+#     # Sidebar
+#     with st.sidebar:
+#         st.header("ℹ️ Status do Sistema")
+        
+#         try:
+#             crew = FiscalCrew()
+#             data_info = crew.get_data_info()
+            
+#             st.success("✅ Sistema Conectado")
+#             st.write(f"**Modelo:** {os.getenv('OLLAMA_MODEL', 'llama3.2:3b')}")
+            
+#             if 'cabecalho' in data_info:
+#                 st.metric("Notas Fiscais", data_info['cabecalho']['registros'])
+            
+#             if 'itens' in data_info:
+#                 st.metric("Itens", data_info['itens']['registros'])
+                
+#         except Exception as e:
+#             st.error(f"❌ Erro: {str(e)}")
+#             st.stop()
+    
+#     # Interface principal
+#     col1, col2 = st.columns([2, 1])
+    
+#     with col1:
+#         st.header("💬 Faça sua pergunta")
+        
+#         # Exemplos otimizados
+#         with st.expander("📝 Perguntas Sugeridas"):
+#             st.write("""
+#             **Valores e Totais:**
+#             - Qual o valor total das notas fiscais?
+#             - Qual o valor médio por nota fiscal?
+#             - Qual a maior e menor nota fiscal?
+            
+#             **Fornecedores:**
+#             - Quais são os principais fornecedores?
+#             - Qual fornecedor teve mais vendas?
+#             """)
+        
+#         pergunta = st.text_area(
+#             "Digite sua pergunta:",
+#             height=80,
+#             placeholder="Ex: Qual o valor total das notas fiscais?"
+#         )
+        
+#         col_btn1, col_btn2 = st.columns([1, 3])
+#         with col_btn1:
+#             analisar = st.button("🔍 Analisar", type="primary")
+        
+#         # Processamento
+#         if analisar and pergunta.strip():
+#             with st.spinner("🤖 Analisando..."):
+#                 try:
+#                     crew = FiscalCrew()
+#                     resposta = crew.run(pergunta)
+                    
+#                     st.success("✅ Análise concluída!")
+#                     st.markdown("### 📋 Resultado:")
+#                     st.markdown(resposta)
+                    
+#                 except Exception as e:
+#                     st.error(f"❌ Erro: {str(e)}")
+#         elif analisar:
+#             st.warning("⚠️ Digite uma pergunta.")
+    
+#     with col2:
+#         st.header("📊 Resumo dos Dados")
+        
+#         try:
+#             crew = FiscalCrew()
+            
+#             # Calcular estatísticas básicas
+#             if crew.df_cabecalho is not None:
+#                 valor_total = crew.df_cabecalho['VALOR NOTA FISCAL'].sum()
+#                 qtd_notas = len(crew.df_cabecalho)
+#                 valor_medio = crew.df_cabecalho['VALOR NOTA FISCAL'].mean()
+                
+#                 st.metric("Valor Total", f"R$ {valor_total:,.2f}")
+#                 st.metric("Quantidade de NFs", qtd_notas)
+#                 st.metric("Valor Médio", f"R$ {valor_medio:,.2f}")
+                
+#                 # Top 3 fornecedores
+#                 st.subheader("Top 3 Fornecedores")
+#                 top_fornecedores = crew.df_cabecalho.groupby('RAZÃO SOCIAL EMITENTE')['VALOR NOTA FISCAL'].sum().sort_values(ascending=False).head(3)
+#                 for fornecedor, valor in top_fornecedores.items():
+#                     st.write(f"• **{fornecedor[:30]}...**: R$ {valor:,.2f}")
+                        
+#         except Exception as e:
+#             st.error(f"Erro: {str(e)}")
+    
+#     st.markdown("---")
+#     st.markdown(
+#         "<div style='text-align: center; color: gray;'>🤖 Agente Fiscal - CrewAI & Ollama</div>",
+#         unsafe_allow_html=True
+#     )
+
+# if __name__ == "__main__":
+#     main()
+
+
+# VERSAO 3 - INTERFACE OTIMIZADA
 import streamlit as st
 import os
 from crew import FiscalCrew
 
-# Configuração da página
 st.set_page_config(
-    page_title="Agente Fiscal - Análise de Notas Fiscais",
+    page_title="Agente Fiscal - Análise Avançada",
     page_icon="📊",
     layout="wide"
 )
 
 def main():
-    st.title("🧾 Agente Fiscal - Análise de Notas Fiscais")
+    st.title("🧾 Agente Fiscal - Análise Avançada de Notas Fiscais")
     st.markdown("---")
     
-    # Sidebar com informações
+    # Sidebar otimizada
     with st.sidebar:
-        st.header("ℹ️ Informações do Sistema")
+        st.header("🎯 Status & Métricas")
         
-        # Verificar status do Ollama
         try:
             crew = FiscalCrew()
             data_info = crew.get_data_info()
             
-            st.success("✅ Sistema Conectado")
-            st.write(f"**Modelo:** {os.getenv('OLLAMA_MODEL', 'llama3.2:3b')}")
+            st.success("✅ Sistema Ativo")
+            st.code(f"Modelo: {os.getenv('OLLAMA_MODEL', 'llama3.2:3b')}")
             
             if 'cabecalho' in data_info:
-                st.write(f"**Cabeçalhos:** {data_info['cabecalho']['registros']} registros")
+                st.metric("📄 Notas Fiscais", data_info['cabecalho']['registros'])
             
             if 'itens' in data_info:
-                st.write(f"**Itens:** {data_info['itens']['registros']} registros")
+                st.metric("📦 Itens", data_info['itens']['registros'])
+                
+            # Quick stats
+            if crew.df_cabecalho is not None:
+                valor_total = crew.df_cabecalho['VALOR NOTA FISCAL'].sum()
+                st.metric("💰 Valor Total", f"R$ {valor_total:,.0f}")
                 
         except Exception as e:
             st.error(f"❌ Erro: {str(e)}")
             st.stop()
     
     # Interface principal
-    col1, col2 = st.columns([2, 1])
+    col1, col2 = st.columns([3, 2])
     
     with col1:
-        st.header("💬 Faça sua pergunta sobre as Notas Fiscais")
+        st.header("💬 Consultas & Relatórios")
         
-        # Exemplos de perguntas
-        with st.expander("📝 Exemplos de Perguntas"):
-            st.write("""
-            - Qual o valor total das notas fiscais?
-            - Quais são os principais fornecedores?
-            - Quantas notas foram emitidas em janeiro de 2024?
-            - Qual o produto mais vendido?
-            - Há alguma inconsistência nos dados?
-            - Qual o valor médio por nota fiscal?
-            """)
+        # Abas para diferentes tipos de consulta
+        tab1, tab2 = st.tabs(["🔍 Consulta Rápida", "📊 Relatório Completo"])
         
-        # Campo de entrada da pergunta
-        pergunta = st.text_area(
-            "Digite sua pergunta:",
-            height=100,
-            placeholder="Ex: Qual o valor total das notas fiscais do mês de janeiro?"
-        )
+        with tab1:
+            st.subheader("Perguntas Específicas")
+            exemplos_rapidos = [
+                "Qual o valor total das notas fiscais?",
+                "Quais são os principais fornecedores?",
+                "Qual a distribuição por UF?",
+                "Quais produtos têm maior valor?",
+                "Qual o valor médio por nota fiscal?"
+            ]
+            
+            pergunta_rapida = st.selectbox(
+                "Exemplos de consultas:",
+                [""] + exemplos_rapidos,
+                index=0
+            )
+            
+            pergunta_custom = st.text_input(
+                "Ou digite sua pergunta:",
+                value=pergunta_rapida,
+                placeholder="Ex: Quantas notas fiscais temos do PR?"
+            )
+            
+            if st.button("🔍 Consultar", type="primary", key="consulta"):
+                if pergunta_custom.strip():
+                    with st.spinner("🤖 Analisando..."):
+                        try:
+                            crew = FiscalCrew()
+                            resposta = crew.run(pergunta_custom)
+                            st.success("✅ Consulta realizada!")
+                            with st.expander("📋 Resultado", expanded=True):
+                                st.markdown(resposta)
+                        except Exception as e:
+                            st.error(f"❌ Erro: {str(e)}")
+                else:
+                    st.warning("⚠️ Digite ou selecione uma pergunta.")
         
-        # Botão para processar
-        if st.button("🔍 Analisar", type="primary"):
-            if pergunta.strip():
-                with st.spinner("🤖 Analisando dados..."):
+        with tab2:
+            st.subheader("Relatório Fiscal Completo")
+            st.info("📈 Gera análise completa com todas as métricas fiscais importantes")
+            
+            tipo_relatorio = st.selectbox(
+                "Tipo de relatório:",
+                [
+                    "Relatório fiscal completo",
+                    "Análise completa de fornecedores", 
+                    "Relatório de conformidade fiscal",
+                    "Análise geográfica completa"
+                ]
+            )
+            
+            if st.button("📊 Gerar Relatório", type="primary", key="relatorio"):
+                with st.spinner("📝 Gerando relatório completo..."):
                     try:
                         crew = FiscalCrew()
-                        resposta = crew.run(pergunta)
+                        resposta = crew.run(tipo_relatorio)
+                        st.success("✅ Relatório gerado!")
                         
-                        st.success("✅ Análise concluída!")
-                        st.markdown("### 📋 Resultado da Análise:")
-                        st.markdown(resposta)
+                        # Opção de download (simulada)
+                        st.download_button(
+                            label="💾 Download Relatório",
+                            data=resposta,
+                            file_name=f"relatorio_fiscal_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.txt",
+                            mime="text/plain"
+                        )
                         
+                        with st.expander("📊 Relatório Completo", expanded=True):
+                            st.markdown(resposta)
+                            
                     except Exception as e:
-                        st.error(f"❌ Erro na análise: {str(e)}")
-            else:
-                st.warning("⚠️ Por favor, digite uma pergunta.")
+                        st.error(f"❌ Erro: {str(e)}")
     
     with col2:
-        st.header("📊 Status dos Dados")
+        st.header("📈 Dashboard Executivo")
         
         try:
             crew = FiscalCrew()
-            data_info = crew.get_data_info()
             
-            if 'cabecalho' in data_info:
-                st.metric(
-                    "Notas Fiscais (Cabeçalho)",
-                    data_info['cabecalho']['registros']
-                )
+            if crew.df_cabecalho is not None:
+                # Métricas principais
+                valor_total = crew.df_cabecalho['VALOR NOTA FISCAL'].sum()
+                qtd_notas = len(crew.df_cabecalho)
+                valor_medio = crew.df_cabecalho['VALOR NOTA FISCAL'].mean()
+                qtd_fornecedores = crew.df_cabecalho['RAZÃO SOCIAL EMITENTE'].nunique()
                 
-                with st.expander("Colunas Cabeçalho"):
-                    for col in data_info['cabecalho']['colunas']:
-                        st.write(f"• {col}")
-            
-            if 'itens' in data_info:
-                st.metric(
-                    "Itens das Notas",
-                    data_info['itens']['registros']
-                )
+                col_a, col_b = st.columns(2)
+                with col_a:
+                    st.metric("💰 Valor Total", f"R$ {valor_total:,.0f}")
+                    st.metric("📄 Total NFs", f"{qtd_notas:,}")
+                with col_b:
+                    st.metric("📊 Valor Médio", f"R$ {valor_medio:,.0f}")
+                    st.metric("🏢 Fornecedores", f"{qtd_fornecedores}")
                 
-                with st.expander("Colunas Itens"):
-                    for col in data_info['itens']['colunas']:
-                        st.write(f"• {col}")
+                # Top fornecedores visual
+                st.subheader("🏆 Top 5 Fornecedores")
+                top_fornecedores = crew.df_cabecalho.groupby('RAZÃO SOCIAL EMITENTE')['VALOR NOTA FISCAL'].sum().sort_values(ascending=False).head(5)
+                
+                for i, (fornecedor, valor) in enumerate(top_fornecedores.items(), 1):
+                    pct = (valor / valor_total) * 100
+                    st.write(f"**{i}.** {fornecedor[:25]}...")
+                    st.progress(pct/100)
+                    st.caption(f"R$ {valor:,.0f} ({pct:.1f}%)")
+                
+                # Distribuição geográfica
+                st.subheader("🗺️ Por Estado")
+                por_uf = crew.df_cabecalho.groupby('UF EMITENTE')['VALOR NOTA FISCAL'].sum().sort_values(ascending=False)
+                
+                for uf, valor in por_uf.head(5).items():
+                    pct = (valor / valor_total) * 100
+                    col_uf1, col_uf2 = st.columns([1, 2])
+                    with col_uf1:
+                        st.write(f"**{uf}**")
+                    with col_uf2:
+                        st.progress(pct/100)
+                        st.caption(f"R$ {valor:,.0f}")
                         
         except Exception as e:
-            st.error(f"Erro ao carregar informações: {str(e)}")
+            st.error(f"Erro no dashboard: {str(e)}")
     
     # Footer
     st.markdown("---")
     st.markdown(
-        """
-        <div style='text-align: center; color: gray;'>
-            🤖 Agente Fiscal - Powered by CrewAI & Ollama
-        </div>
-        """,
+        "<div style='text-align: center; color: gray;'>🤖 Agente Fiscal v3.0 - CrewAI & Ollama</div>",
         unsafe_allow_html=True
     )
 
 if __name__ == "__main__":
+    import pandas as pd
     main()

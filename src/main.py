@@ -6,7 +6,19 @@ Arquivo principal para executar o Agente Fiscal
 import os
 import sys
 import subprocess
+import socket
 from pathlib import Path
+
+def find_free_port(start_port=8501, max_port=8510):
+    """Encontra uma porta livre para o Streamlit"""
+    for port in range(start_port, max_port):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(('localhost', port))
+                return port
+        except OSError:
+            continue
+    return None
 
 def check_requirements():
     """Verifica se as dependências estão instaladas"""
@@ -45,6 +57,9 @@ def check_csv_files():
     
     if cabecalho_file.exists() and itens_file.exists():
         print("✅ Arquivos CSV encontrados")
+        # Configurar variáveis de ambiente
+        os.environ["CSV_CABECALHO_PATH"] = str(cabecalho_file)
+        os.environ["CSV_ITENS_PATH"] = str(itens_file)
         return True
     else:
         print("❌ Arquivos CSV não encontrados")
@@ -62,18 +77,48 @@ def install_requirements():
         print("❌ Arquivo requirements.txt não encontrado")
         return False
 
+def kill_existing_streamlit():
+    """Mata processos existentes do Streamlit na porta 8501"""
+    try:
+        if os.name == 'nt':  # Windows
+            subprocess.run(['taskkill', '/f', '/im', 'streamlit.exe'], 
+                         capture_output=True, text=True)
+        else:  # Linux/Mac
+            subprocess.run(['pkill', '-f', 'streamlit'], 
+                         capture_output=True, text=True)
+        print("🔄 Processos anteriores finalizados")
+    except:
+        pass
+
 def run_streamlit():
     """Executa o Streamlit"""
     app_path = Path(__file__).parent / "app.py"
-    if app_path.exists():
-        print("🚀 Iniciando Streamlit...")
+    if not app_path.exists():
+        print("❌ Arquivo app.py não encontrado")
+        return
+    
+    # Tentar encontrar uma porta livre
+    port = find_free_port()
+    if not port:
+        print("❌ Nenhuma porta disponível encontrada")
+        print("💡 Tente fechar outras aplicações Streamlit")
+        return
+    
+    print(f"🌐 Iniciando Streamlit na porta {port}...")
+    print(f"📱 Acesse: http://localhost:{port}")
+    print("=" * 50)
+    
+    try:
         subprocess.run([
             sys.executable, "-m", "streamlit", "run", str(app_path),
-            "--server.port", "8501",
-            "--server.address", "localhost"
+            "--server.port", str(port),
+            "--server.address", "localhost",
+            "--browser.gatherUsageStats", "false"
         ])
-    else:
-        print("❌ Arquivo app.py não encontrado")
+    except KeyboardInterrupt:
+        print("\n🛑 Aplicação interrompida pelo usuário")
+    except Exception as e:
+        print(f"❌ Erro ao executar Streamlit: {e}")
 
 def main():
     """Função principal"""
@@ -85,32 +130,53 @@ def main():
         print("\n📦 Instalando dependências...")
         if not install_requirements():
             print("❌ Falha na instalação das dependências")
+            input("Pressione Enter para sair...")
             return
         
-        # Verificar novamente após instalação
         if not check_requirements():
             print("❌ Ainda há dependências faltando")
+            input("Pressione Enter para sair...")
             return
     
     # Verificar Ollama
     if not check_ollama():
         print("\n⚠️  ATENÇÃO: Certifique-se de que o Ollama está rodando:")
-        print("   1. Abra o terminal")
+        print("   1. Abra um novo terminal")
         print("   2. Execute: ollama serve")
         print("   3. Execute: ollama pull llama3.2:3b")
-        return
+        input("Pressione Enter depois de configurar o Ollama...")
+        
+        # Verificar novamente
+        if not check_ollama():
+            print("❌ Ollama ainda não está disponível")
+            input("Pressione Enter para sair...")
+            return
     
     # Verificar arquivos CSV
     if not check_csv_files():
-        print("\n⚠️  ATENÇÃO: Coloque os arquivos CSV na pasta 'knowledge/'")
-        return
+        print("\n⚠️  ATENÇÃO: Coloque os arquivos CSV na pasta 'knowledge/':")
+        print("   - 202401_NFs_Cabecalho.csv")
+        print("   - 202401_NFs_Itens.csv")
+        input("Pressione Enter depois de adicionar os arquivos...")
+        
+        if not check_csv_files():
+            print("❌ Arquivos CSV ainda não encontrados")
+            input("Pressione Enter para sair...")
+            return
     
     print("\n✅ Todos os pré-requisitos atendidos!")
-    print("🌐 Abrindo interface web...")
-    print("-" * 50)
+    
+    # Finalizar processos anteriores
+    kill_existing_streamlit()
     
     # Executar Streamlit
     run_streamlit()
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n🛑 Execução interrompida")
+    except Exception as e:
+        print(f"\n❌ Erro inesperado: {e}")
+        input("Pressione Enter para sair...")
